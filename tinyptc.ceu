@@ -1,0 +1,58 @@
+native do
+/*
+    char* one_two_three[] = {
+        "one",
+        "two",
+        "three"
+    };
+    Stack* to_test = Stack_new();
+    assert(Stack_empty(to_test));
+    Stack_push(to_test, one_two_three[0]);
+    assert(! Stack_empty(to_test));
+    Stack_push(to_test, one_two_three[1]);
+    assert(! Stack_empty(to_test));
+    Stack_push(to_test, one_two_three[2]);
+    assert(! Stack_empty(to_test));
+    printf("%s\n", (char*)Stack_pop(to_test));
+    assert(! Stack_empty(to_test));
+    printf("%s\n", (char*)Stack_pop(to_test));
+    assert(! Stack_empty(to_test));
+    printf("%s\n", (char*)Stack_pop(to_test));
+    assert(Stack_empty(to_test));
+    */
+end
+native _assert();
+native _ptc_open();
+native _VirtualAlloc();
+native _ptc_update();
+native _ptc_close();
+var int w = 640;
+var int h = 480;
+_assert(_ptc_open("tinyptc w/gdi", 640, 480));
+
+native do
+  uint32_t (*img)[640] = (unsigned int (*)[640]) VirtualAlloc(0, 480 * 640 * 4, MEM_COMMIT, PAGE_READWRITE);
+end
+
+var int xoffset = 100;
+var int yoffset = 100;
+
+loop do
+  loop row in h do
+    loop col in w do
+      var int xdiff = col - xoffset;
+      var int ydiff = row - yoffset;
+      if xdiff * xdiff + ydiff * ydiff < 100 then
+        _img[row][col] = 100 << 16;
+      else
+        _img[row][col] = col | row << 8;
+      end
+    end
+  end
+  if not _ptc_update(_img) then
+    break;
+  end
+end
+
+// ptc_close(); // TODO(jn): Is this really necessary?
+escape 0;
